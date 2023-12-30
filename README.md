@@ -28,3 +28,7 @@ This is intended to be used a library, rather than as a command line tool. Also 
 Quick demo:
 
     python -m openssl_enc_compat.cipher
+
+## Run tests
+
+    python -m openssl_enc_compat.tests.testsuite -v
