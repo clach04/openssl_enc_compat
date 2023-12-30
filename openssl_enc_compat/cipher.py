@@ -141,6 +141,8 @@ class OpenSslEncDecCompat:
             #print('DEBUG last_byte %r' % type(last_byte))
             if not isinstance(last_byte, (int,)):
                 last_byte = ord(last_byte)  # for multiple bytes use struct instead
+            if last_byte > AES.block_size:
+                raise BaseOpenSslCompatException('Invalid PKCS#7 padding %r' % last_byte)
             plain_bytes = plain_bytes[:-last_byte]
             #print('DEBUG plain_bytes %r' % plain_bytes)
             return plain_bytes
