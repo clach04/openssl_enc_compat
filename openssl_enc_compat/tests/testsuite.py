@@ -27,7 +27,7 @@ except ImportError:
 
 
 import openssl_enc_compat
-from openssl_enc_compat.cipher import OpenSslEncDecCompat
+from openssl_enc_compat.cipher import OpenSslEncDecCompat, OPENSSL_MAGIC_EXPECTED_PREFIX_BASE64, OPENSSL_MAGIC_EXPECTED_PREFIX
 
 is_py3 = sys.version_info >= (3,)
 is_win = sys.platform.startswith('win')
@@ -107,9 +107,24 @@ class EncryptTest(TestBase):
     password = b'password'
     plain_text = b'hello'
 
-    def test_encrypt_decrypt_binary(self):
+    def test_encrypt_decrypt_binary_explict(self):
+        cipher = OpenSslEncDecCompat(self.password, base64=False)
+        crypted_bytes = cipher.encrypt(self.plain_text)
+        self.assertTrue(crypted_bytes.startswith(OPENSSL_MAGIC_EXPECTED_PREFIX))
+        plain_bytes = cipher.decrypt(crypted_bytes)
+        self.assertEqual(self.plain_text, plain_bytes)
+
+    def test_encrypt_decrypt_binary_implict(self):
         cipher = OpenSslEncDecCompat(self.password)
         crypted_bytes = cipher.encrypt(self.plain_text)
+        self.assertTrue(crypted_bytes.startswith(OPENSSL_MAGIC_EXPECTED_PREFIX))
+        plain_bytes = cipher.decrypt(crypted_bytes)  # guesses if base64 encoded or not
+        self.assertEqual(self.plain_text, plain_bytes)
+
+    def test_encrypt_decrypt_base64(self):
+        cipher = OpenSslEncDecCompat(self.password, base64=True)
+        crypted_bytes = cipher.encrypt(self.plain_text)
+        self.assertTrue(crypted_bytes.startswith(OPENSSL_MAGIC_EXPECTED_PREFIX_BASE64))
         plain_bytes = cipher.decrypt(crypted_bytes)  # guesses if base64 encoded or not
         self.assertEqual(self.plain_text, plain_bytes)
 
