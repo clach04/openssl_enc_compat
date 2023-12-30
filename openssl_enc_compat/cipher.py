@@ -27,6 +27,8 @@ if os.environ.get('NO_PYCRYPTO'):
 import Crypto  # https://github.com/Legrandin/pycryptodome - PyCryptodome (safer/modern PyCrypto)
 from Crypto.Cipher import AES
 
+# TODO fall back to pyaes
+
 
 # Modes from https://peps.python.org/pep-0272/
 MODE_ECB = 1  # Electronic Code Book
