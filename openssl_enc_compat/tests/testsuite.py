@@ -63,6 +63,22 @@ class DecryptTest(TestBase):
     password = b'password'
     canon = b'hello'  # newline...
 
+    def test_linux_base64_hello(self):
+        # echo hello| openssl enc -e -aes-256-cbc -in - -out - -base64 -salt -pbkdf2 -iter 10000  -pass pass:password
+        openssl_crypted_base64 = 'U2FsdGVkX1+PeTa4+Bk6SWEa9ytWl8/Ds0404dxtvcg='  # base64 from Linux: OpenSSL 1.1.1f  31 Mar 2020
+
+        cipher = OpenSslEncDecCompat(self.password)  # guess/default
+        plaintext = cipher.decrypt(openssl_crypted_base64)  # guesses if base64 encoded or not
+        self.assertEqual(self.canon + b'\n', plaintext)
+
+    def test_linux_binary_hello(self):
+        # echo hello| openssl enc -e -aes-256-cbc -in - -out - -salt -pbkdf2 -iter 10000  -pass pass:password
+        openssl_crypted_raw = b'Salted__\x8fy6\xb8\xf8\x19:Ia\x1a\xf7+V\x97\xcf\xc3\xb3N4\xe1\xdcm\xbd\xc8'  # base64 from Linux: OpenSSL 1.1.1f  31 Mar 2020
+
+        cipher = OpenSslEncDecCompat(self.password)  # guess/default
+        plaintext = cipher.decrypt(openssl_crypted_raw)  # guesses if base64 encoded or not
+        self.assertEqual(self.canon + b'\n', plaintext)
+
     def test_windows_base64_hello(self):
         # echo hello| openssl enc -e aes-256-cbc -salt -pbkdf2 -iter 10000 -in - -base64 -out - -pass pass:password
         openssl_crypted_base64 = 'U2FsdGVkX18NXhFhTlAyvM2jXPu+hhsT344TvO0yLYk='  # base64 from Windows machine OpenSSL 3.1.4 24 Oct 2023 (Library: OpenSSL 3.1.4 24 Oct 2023)
