@@ -95,6 +95,11 @@ class DecryptTest(TestBase):
         plaintext = cipher.decrypt(openssl_crypted_raw)  # guesses if base64 encoded or not
         self.assertEqual(self.canon + b'\r\n', plaintext)
 
+# TODO negative tests to ensure exceptions are raised
+# call with base64 param set to True and False
+# test with more interations
+# Test with other AES modes
+# Implement non-AES ciphers
 
 def debugTestRunner(post_mortem=None):
     """unittest runner doing post mortem debugging on failing tests"""
