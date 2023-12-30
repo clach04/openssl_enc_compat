@@ -44,6 +44,7 @@ setup(
     url='https://github.com/clach04/' + project_name,
     description='Pure Python read/write encryption/decryption of encrypted OpenSSL 1.1.1 files',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=[project_name],
     py_modules=[project_name, ],
     #data_files=[('.', [readme_filename])],  # does not work :-( Also tried setup.cfg [metadata]\ndescription-file = README.md # Maybe try include_package_data = True and a MANIFEST.in?
