@@ -102,6 +102,17 @@ class DecryptTest(TestBase):
 # Implement non-AES ciphers
 # Compare behavior with this implementation and openssl with mismatched iter counts;  echo hello| openssl enc -e -aes-256-cbc -in - -out - -base64 -salt -pbkdf2 -iter 10000  -pass pass:password | openssl enc -d -aes-256-cbc -in - -out - -base64 -salt -pbkdf2 -iter 1000  -pass pass:password
 
+class EncryptTest(TestBase):
+
+    password = b'password'
+    plain_text = b'hello'
+
+    def test_encrypt_decrypt_binary(self):
+        cipher = OpenSslEncDecCompat(self.password)
+        crypted_bytes = cipher.encrypt(self.plain_text)
+        plain_bytes = cipher.decrypt(crypted_bytes)  # guesses if base64 encoded or not
+        self.assertEqual(self.plain_text, plain_bytes)
+
 
 def debugTestRunner(post_mortem=None):
     """unittest runner doing post mortem debugging on failing tests"""

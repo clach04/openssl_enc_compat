@@ -64,13 +64,15 @@ def to_bytes(data_in_string, note_encoding='latin1'):
 
 
 OPENSSL_DEFAULT_ITERATION_COUNT = 10000  # 10,000 == 10K - considered small in 2023
+MAGIC_EXPECTED_PREFIX_STR = 'Salted__'  # for openssl enc -e -salt .....
 
 def openssl_pbkdf2(key, salt, iteration_count=OPENSSL_DEFAULT_ITERATION_COUNT):
     """Returns tuple of (aes_key, aes_iv)
     TODO accept None for salt and then generate random
+    Currently assumes salt is the correct size (8-bytes)
     """
     # OpenSSL key derivation function is pbkdf2
-    # derive/generate AES encryption key 32-bytes (256-bits) and IV 16-bytes (128-bits) from password (total of 48-bytes (384-bits)), using salt
+    # derive/generate AES encryption key 32-bytes (256-bits) and IV 16-bytes (128-bits) from password and salt, total of 48-bytes (384-bits)
     key_plus_iv = hashlib.pbkdf2_hmac('sha256', key, salt, iteration_count, 48)
     #print('DEBUG key_plus_iv %r' % key_plus_iv)
 
@@ -98,6 +100,12 @@ class OpenSslEncDecCompat:
       * requires bytes (depending on how you read the PEP-272, this may actually be conforming based on datatypes available at the time the spec was finalized)
 
     Cipher PEP 272 API for Block Encryption Algorithms v1.0 https://www.python.org/dev/peps/pep-0272/
+
+    File format (for raw binary):
+        8-bytes - Magic prefix 'Salted__' - when base64 encoded 'U2FsdGVkX18'...
+        8-bytes - salt
+        X-bytes - encrypted payload, encrypted with key and iv derived from pbkdf2 with 10,000 iterations. This implementation only handles AES-256-CBC
+    Nothing in the file indicates encryption nor kdf (iterations). See KeepOut format https://github.com/clach04/openssl_enc_compat/issues/2
     """
 
     def __init__(self, key, mode=MODE_CBC, IV=None, **kwargs):
@@ -123,10 +131,10 @@ class OpenSslEncDecCompat:
             base64_encoded = self._openssl_options['base64']
             if base64_encoded is None:
                 # heuristic based on content
-                MAGIC_EXPECTED_PREFIX = 'Salted__'  # for openssl enc -e -salt .....
+                required_prefix = MAGIC_EXPECTED_PREFIX_STR
                 if isinstance(in_bytes, (bytes, bytearray)):
-                    MAGIC_EXPECTED_PREFIX = to_bytes(MAGIC_EXPECTED_PREFIX)
-                if in_bytes.startswith(MAGIC_EXPECTED_PREFIX):
+                    required_prefix = to_bytes(required_prefix)
+                if in_bytes.startswith(required_prefix):
                     base64_encoded = False
                 else:
                     base64_encoded = True
@@ -157,7 +165,20 @@ class OpenSslEncDecCompat:
             return plain_bytes
 
     def encrypt(self, in_bytes):
-            raise NotImplementedError()
+        if not isinstance(in_bytes, bytes):
+            raise NotImplementedError('in_bytes must be bytes')
+        salt = b'12345678'  # FIXME!
+        aes_key, aes_iv = openssl_pbkdf2(self.key, salt, self._openssl_options['pbkdf2_iteration_count'])
+        cipher = AES.new(aes_key, AES.MODE_CBC, aes_iv)
+        # PKCS#7 padding
+        last_byte = AES.block_size - (len(in_bytes) % AES.block_size)
+        in_bytes += bytearray([last_byte] * last_byte)
+        encrypted_bytes = cipher.encrypt(in_bytes)
+        encrypted_bytes = to_bytes(MAGIC_EXPECTED_PREFIX_STR) + salt + encrypted_bytes
+        base64_encoded = self._openssl_options['base64']
+        if base64_encoded:
+            return base64.b64encode(encrypted_bytes)
+        return encrypted_bytes
 
 
 
