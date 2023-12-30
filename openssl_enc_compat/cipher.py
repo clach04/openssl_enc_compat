@@ -64,7 +64,7 @@ def to_bytes(data_in_string, note_encoding='latin1'):
 
 
 OPENSSL_DEFAULT_ITERATION_COUNT = 10000  # 10,000 == 10K - considered small in 2023
-MAGIC_EXPECTED_PREFIX_STR = 'Salted__'  # for openssl enc -e -salt .....
+OPENSSL_MAGIC_EXPECTED_PREFIX_STR = 'Salted__'  # for openssl enc -e -salt .....
 
 def openssl_pbkdf2(key, salt, iteration_count=OPENSSL_DEFAULT_ITERATION_COUNT):
     """Returns tuple of (aes_key, aes_iv)
@@ -131,7 +131,7 @@ class OpenSslEncDecCompat:
             base64_encoded = self._openssl_options['base64']
             if base64_encoded is None:
                 # heuristic based on content
-                required_prefix = MAGIC_EXPECTED_PREFIX_STR
+                required_prefix = OPENSSL_MAGIC_EXPECTED_PREFIX_STR
                 if isinstance(in_bytes, (bytes, bytearray)):
                     required_prefix = to_bytes(required_prefix)
                 if in_bytes.startswith(required_prefix):
@@ -174,7 +174,7 @@ class OpenSslEncDecCompat:
         last_byte = AES.block_size - (len(in_bytes) % AES.block_size)
         in_bytes += bytearray([last_byte] * last_byte)
         encrypted_bytes = cipher.encrypt(in_bytes)
-        encrypted_bytes = to_bytes(MAGIC_EXPECTED_PREFIX_STR) + salt + encrypted_bytes
+        encrypted_bytes = to_bytes(OPENSSL_MAGIC_EXPECTED_PREFIX_STR) + salt + encrypted_bytes
         base64_encoded = self._openssl_options['base64']
         if base64_encoded:
             return base64.b64encode(encrypted_bytes)
