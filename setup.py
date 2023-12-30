@@ -23,6 +23,7 @@ Suggested setup.py parameters:
 PyPi:
 
     twine upload dist/*
+    ./setup.py  sdist ; twine upload dist/* --verbose
 
 """)
 
