@@ -26,6 +26,7 @@ if os.environ.get('NO_PYCRYPTO'):
 # http://www.dlitz.net/software/pycrypto/ - PyCrypto - The Python Cryptography Toolkit
 import Crypto  # https://github.com/Legrandin/pycryptodome - PyCryptodome (safer/modern PyCrypto)
 from Crypto.Cipher import AES
+from Crypto import Random
 
 # TODO fall back to pyaes
 
@@ -66,7 +67,7 @@ def to_bytes(data_in_string, note_encoding='latin1'):
 OPENSSL_DEFAULT_ITERATION_COUNT = 10000  # 10,000 == 10K - considered small in 2023
 OPENSSL_MAGIC_EXPECTED_PREFIX_STR = 'Salted__'  # for openssl enc -e -salt .....
 OPENSSL_MAGIC_EXPECTED_PREFIX = to_bytes(OPENSSL_MAGIC_EXPECTED_PREFIX_STR)  # for openssl enc -e -salt .....
-OPENSSL_MAGIC_EXPECTED_PREFIX_BASE64 = to_bytes('U2FsdGVkX18')  # for openssl enc -e -salt -base64 .....
+OPENSSL_MAGIC_EXPECTED_PREFIX_BASE64 = to_bytes('U2FsdGVkX1')  # for openssl enc -e -salt -base64 .....
 
 def openssl_pbkdf2(key, salt, iteration_count=OPENSSL_DEFAULT_ITERATION_COUNT):
     """Returns tuple of (aes_key, aes_iv)
@@ -104,7 +105,7 @@ class OpenSslEncDecCompat:
     Cipher PEP 272 API for Block Encryption Algorithms v1.0 https://www.python.org/dev/peps/pep-0272/
 
     File format (for raw binary):
-        8-bytes - Magic prefix 'Salted__' - when base64 encoded 'U2FsdGVkX18'...
+        8-bytes - Magic prefix 'Salted__' - when base64 encoded 'U2FsdGVkX1'...
         8-bytes - salt
         X-bytes - encrypted payload, encrypted with key and iv derived from pbkdf2 with 10,000 iterations. This implementation only handles AES-256-CBC
     Nothing in the file indicates encryption nor kdf (iterations). See KeepOut format https://github.com/clach04/openssl_enc_compat/issues/2
@@ -169,7 +170,7 @@ class OpenSslEncDecCompat:
     def encrypt(self, in_bytes):
         if not isinstance(in_bytes, bytes):
             raise NotImplementedError('in_bytes must be bytes')
-        salt = b'12345678'  # FIXME!
+        salt = Random.get_random_bytes(8)
         aes_key, aes_iv = openssl_pbkdf2(self.key, salt, self._openssl_options['pbkdf2_iteration_count'])
         cipher = AES.new(aes_key, AES.MODE_CBC, aes_iv)
         # PKCS#7 padding

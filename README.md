@@ -3,7 +3,11 @@
 Pure Python 2.7 and 3.x library that is compatible with OpenSSL 1.1.1+ encryption and decryption.
 https://github.com/clach04/openssl_enc_compat
 
-This is intended to be used a library, rather than as a command line tool. Also checkout:
+This is intended to be used a library, rather than as a command line tool.
+Can encrypt/decrypt raw binary and base64 encoded content.
+Only supports aes-256-cbc with salt using pbkdf2. pbkdf2 iterations defaults to 10,000 to match OpenSSL default but can be specified.
+
+Also checkout:
 
   * https://github.com/The-Crocop/pyaes256 - lots of dependencies with a nice API but limited to utf-8 data
   * https://github.com/EbryxLabs/opencrypt - Python 3 only with a filename only API (and command line tools)

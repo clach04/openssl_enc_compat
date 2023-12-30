@@ -107,6 +107,20 @@ class EncryptTest(TestBase):
     password = b'password'
     plain_text = b'hello'
 
+    def test_same_input_different_crypted_text_binary(self):
+        cipher = OpenSslEncDecCompat(self.password, base64=False)
+        crypted_bytes1 = cipher.encrypt(self.plain_text)
+        crypted_bytes2 = cipher.encrypt(self.plain_text)
+        self.assertNotEqual(crypted_bytes1, crypted_bytes2)
+
+        self.assertTrue(crypted_bytes1.startswith(OPENSSL_MAGIC_EXPECTED_PREFIX))
+        plain_bytes = cipher.decrypt(crypted_bytes1)
+        self.assertEqual(self.plain_text, plain_bytes)
+
+        self.assertTrue(crypted_bytes2.startswith(OPENSSL_MAGIC_EXPECTED_PREFIX))
+        plain_bytes = cipher.decrypt(crypted_bytes2)
+        self.assertEqual(self.plain_text, plain_bytes)
+
     def test_encrypt_decrypt_binary_explict(self):
         cipher = OpenSslEncDecCompat(self.password, base64=False)
         crypted_bytes = cipher.encrypt(self.plain_text)
@@ -124,7 +138,7 @@ class EncryptTest(TestBase):
     def test_encrypt_decrypt_base64(self):
         cipher = OpenSslEncDecCompat(self.password, base64=True)
         crypted_bytes = cipher.encrypt(self.plain_text)
-        self.assertTrue(crypted_bytes.startswith(OPENSSL_MAGIC_EXPECTED_PREFIX_BASE64))
+        self.assertTrue(crypted_bytes.startswith(OPENSSL_MAGIC_EXPECTED_PREFIX_BASE64), '%r' % crypted_bytes)
         plain_bytes = cipher.decrypt(crypted_bytes)  # guesses if base64 encoded or not
         self.assertEqual(self.plain_text, plain_bytes)
 
