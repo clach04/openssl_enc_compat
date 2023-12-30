@@ -63,6 +63,22 @@ def to_bytes(data_in_string, note_encoding='latin1'):
     raise NotImplementedError()
 
 
+OPENSSL_DEFAULT_ITERATION_COUNT = 10000  # 10,000 == 10K - considered small in 2023
+
+def openssl_pbkdf2(key, salt, iteration_count=OPENSSL_DEFAULT_ITERATION_COUNT):
+    """Returns tuple of (aes_key, aes_iv)
+    TODO accept None for salt and then generate random
+    """
+    # OpenSSL key derivation function is pbkdf2
+    # derive/generate AES encryption key 32-bytes (256-bits) and IV 16-bytes (128-bits) from password (total of 48-bytes (384-bits)), using salt
+    key_plus_iv = hashlib.pbkdf2_hmac('sha256', key, salt, iteration_count, 48)
+    #print('DEBUG key_plus_iv %r' % key_plus_iv)
+
+    aes_key = key_plus_iv[0:32]
+    aes_iv = key_plus_iv[32:48]
+
+    return aes_key, aes_iv
+
 class OpenSslEncDecCompat:
     """Cipher to handle OpenSSL format encryped data, i.e. OpenSSL 1.1.1 compatible (with a very small subset of options).
 
@@ -98,7 +114,7 @@ class OpenSslEncDecCompat:
         # PBKDF2 WILL be used
         self._openssl_options['base64'] = kwargs.get('base64', None)
         self._openssl_options['cipher_name'] = kwargs.get('cipher', 'aes-256-cbc')  # actual name, mode, and size
-        self._openssl_options['pbkdf2_iteration_count'] = kwargs.get('iter', 10000)  # pbkdf2 iteration count - 10K is the default as of 2023 since OpenSSL 1.1.1
+        self._openssl_options['pbkdf2_iteration_count'] = kwargs.get('iter', OPENSSL_DEFAULT_ITERATION_COUNT)  # pbkdf2 iteration count - 10K is the default as of 2023 since OpenSSL 1.1.1
         # TODO user specificed salt and IV
         # TODO other cipher names
         # TODO clear kwargs of processed arguments, and raise an error if anything else left (i.e. unsupported arguments)
@@ -123,14 +139,7 @@ class OpenSslEncDecCompat:
             salt = in_bytes[8:16]
             encrypted_bytes = in_bytes[16:]
 
-            # OpenSSL key derivation function is pbkdf2
-            # derive/generate AES encryption key 32-bytes (256-bits) and IV 16-bytes (128-bits) from password (total of 48-bytes (384-bits)), using salt
-            key_plus_iv = hashlib.pbkdf2_hmac('sha256', self.key, salt, self._openssl_options['pbkdf2_iteration_count'], 48)
-            #print('DEBUG key_plus_iv %r' % key_plus_iv)
-
-            aes_key = key_plus_iv[0:32]
-            aes_iv = key_plus_iv[32:48]
-
+            aes_key, aes_iv = openssl_pbkdf2(self.key, salt, self._openssl_options['pbkdf2_iteration_count'])
             cipher = AES.new(aes_key, AES.MODE_CBC, aes_iv)
             plain_bytes = cipher.decrypt(encrypted_bytes)
             #print('DEBUG plain_bytes %r' % plain_bytes)
