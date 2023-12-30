@@ -6,7 +6,7 @@
 Sample usage:
 
     python -m openssl_enc_compat.tests.testsuite -v
-    python -m openssl_enc_compat.tests.testsuite -v TestIO
+    python -m openssl_enc_compat.tests.testsuite -v DecryptTest
 
 """
 
@@ -100,6 +100,8 @@ class DecryptTest(TestBase):
 # test with more interations
 # Test with other AES modes
 # Implement non-AES ciphers
+# Compare behavior with this implementation and openssl with mismatched iter counts;  echo hello| openssl enc -e -aes-256-cbc -in - -out - -base64 -salt -pbkdf2 -iter 10000  -pass pass:password | openssl enc -d -aes-256-cbc -in - -out - -base64 -salt -pbkdf2 -iter 1000  -pass pass:password
+
 
 def debugTestRunner(post_mortem=None):
     """unittest runner doing post mortem debugging on failing tests"""
