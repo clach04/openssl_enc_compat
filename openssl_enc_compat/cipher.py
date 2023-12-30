@@ -130,41 +130,41 @@ class OpenSslEncDecCompat:
         # TODO clear kwargs of processed arguments, and raise an error if anything else left (i.e. unsupported arguments)
 
     def decrypt(self, in_bytes):
-            base64_encoded = self._openssl_options['base64']
-            if base64_encoded is None:
-                # heuristic based on content
-                required_prefix = OPENSSL_MAGIC_EXPECTED_PREFIX_STR
-                if isinstance(in_bytes, (bytes, bytearray)):
-                    required_prefix = OPENSSL_MAGIC_EXPECTED_PREFIX
-                if in_bytes.startswith(required_prefix):
-                    base64_encoded = False
-                else:
-                    base64_encoded = True
-            if base64_encoded:
-                in_bytes = base64.b64decode(in_bytes)
-            #print('DEBUG in_bytes %r' % in_bytes)
-            if not in_bytes.startswith(b'Salted__'):
-                raise UnsupportedFile()
+        base64_encoded = self._openssl_options['base64']
+        if base64_encoded is None:
+            # heuristic based on content
+            required_prefix = OPENSSL_MAGIC_EXPECTED_PREFIX_STR
+            if isinstance(in_bytes, (bytes, bytearray)):
+                required_prefix = OPENSSL_MAGIC_EXPECTED_PREFIX
+            if in_bytes.startswith(required_prefix):
+                base64_encoded = False
+            else:
+                base64_encoded = True
+        if base64_encoded:
+            in_bytes = base64.b64decode(in_bytes)
+        #print('DEBUG in_bytes %r' % in_bytes)
+        if not in_bytes.startswith(b'Salted__'):
+            raise UnsupportedFile()
 
-            salt = in_bytes[8:16]
-            encrypted_bytes = in_bytes[16:]
+        salt = in_bytes[8:16]
+        encrypted_bytes = in_bytes[16:]
 
-            aes_key, aes_iv = openssl_pbkdf2(self.key, salt, self._openssl_options['pbkdf2_iteration_count'])
-            cipher = AES.new(aes_key, AES.MODE_CBC, aes_iv)
-            plain_bytes = cipher.decrypt(encrypted_bytes)
-            #print('DEBUG plain_bytes %r' % plain_bytes)
+        aes_key, aes_iv = openssl_pbkdf2(self.key, salt, self._openssl_options['pbkdf2_iteration_count'])
+        cipher = AES.new(aes_key, AES.MODE_CBC, aes_iv)
+        plain_bytes = cipher.decrypt(encrypted_bytes)
+        #print('DEBUG plain_bytes %r' % plain_bytes)
 
-            # PKCS#7 padding
-            last_byte = plain_bytes[-1]
-            #print('DEBUG last_byte %r' % last_byte)
-            #print('DEBUG last_byte %r' % type(last_byte))
-            if not isinstance(last_byte, (int,)):
-                last_byte = ord(last_byte)  # for multiple bytes use struct instead
-            if last_byte > AES.block_size:
-                raise BaseOpenSslCompatException('Invalid PKCS#7 padding %r' % last_byte)
-            plain_bytes = plain_bytes[:-last_byte]
-            #print('DEBUG plain_bytes %r' % plain_bytes)
-            return plain_bytes
+        # PKCS#7 padding
+        last_byte = plain_bytes[-1]
+        #print('DEBUG last_byte %r' % last_byte)
+        #print('DEBUG last_byte %r' % type(last_byte))
+        if not isinstance(last_byte, (int,)):
+            last_byte = ord(last_byte)  # for multiple bytes use struct instead
+        if last_byte > AES.block_size:
+            raise BaseOpenSslCompatException('Invalid PKCS#7 padding %r' % last_byte)
+        plain_bytes = plain_bytes[:-last_byte]
+        #print('DEBUG plain_bytes %r' % plain_bytes)
+        return plain_bytes
 
     def encrypt(self, in_bytes):
         if not isinstance(in_bytes, bytes):
