@@ -43,7 +43,7 @@ setup(
     version=__version__,
     author='clach04',
     url='https://github.com/clach04/' + project_name,
-    description='Pure Python read/write encryption/decryption of encrypted OpenSSL 1.1.1 files',
+    description='Pure Python read/write encryption/decryption of encrypted OpenSSL 1.1.0 files',
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=[project_name],

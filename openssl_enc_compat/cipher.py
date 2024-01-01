@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: us-ascii -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
-"""Pure Python encrypt/descrypt routines with compatability with a (subset) of the command line tool openssl 1.1.1+ enc/dec operations.
+"""Pure Python encrypt/descrypt routines with compatability with a (subset) of the command line tool openssl 1.1.0+ enc/dec operations.
 
-I.e. Python 2.7 and Python 3.x code to allow encryption/decryption of files compatible with OpenSSL 1.1.1:
+I.e. Python 2.7 and Python 3.x code to allow encryption/decryption of files compatible with OpenSSL 1.1.0:
 
     openssl enc -e aes-256-cbc -salt -pbkdf2 -iter 10000 -in in_file -base64 -out out_file
     openssl dec -d aes-256-cbc -salt -pbkdf2 -iter 10000 -in in_file -base64 -out out_file
 
     echo hello| openssl enc -e aes-256-cbc -salt -pbkdf2 -iter 10000 -in - -base64 -out - -pass pass:password
 
-NOTE PBKDF2 iteration count of 10,000 is the default in OpenSSL 1.1.1 and is considered too few in 2023.
+NOTE PBKDF2 iteration count of 10,000 is the default in OpenSSL 1.1.0 and is considered too few in 2023.
 Older versions of OpenSSL did not support; PBKDF2 (and ergo iterations) and salt and used a much weaker KDF.
 """
 
@@ -85,16 +85,16 @@ def openssl_pbkdf2(key, salt, iteration_count=OPENSSL_DEFAULT_ITERATION_COUNT):
     return aes_key, aes_iv
 
 class OpenSslEncDecCompat:
-    """Cipher to handle OpenSSL format encryped data, i.e. OpenSSL 1.1.1 compatible (with a very small subset of options).
+    """Cipher to handle OpenSSL format encryped data, i.e. OpenSSL 1.1.0 compatible (with a very small subset of options).
 
-    Intended to allow decryption of files generated with OpenSSL 1.1.1 and vice-versa. Supported OpenSSL flags/formats:
+    Intended to allow decryption of files generated with OpenSSL 1.1.0 and vice-versa. Supported OpenSSL flags/formats:
 
         openssl enc -e aes-256-cbc -salt -pbkdf2 -iter 10000 -in in_file -base64 -out out_file
         openssl dec -d aes-256-cbc -salt -pbkdf2 -iter 10000 -in in_file -base64 -out out_file
 
         echo hello| openssl enc -e aes-256-cbc -salt -pbkdf2 -iter 10000 -in - -base64 -out - -pass pass:password
 
-    NOTE PBKDF2 iteration count of 10,000 is the default in OpenSSL 1.1.1 and is considered too few in 2023.
+    NOTE PBKDF2 iteration count of 10,000 is the default in OpenSSL 1.1.0 and is considered too few in 2023.
     Older versions of OpenSSL did not support; PBKDF2 (and ergo iterations) and salt and used a much weaker KDF.
 
     API PEP-272 Like... This is non-confirming:
@@ -125,7 +125,7 @@ class OpenSslEncDecCompat:
         # PBKDF2 WILL be used
         self._openssl_options['base64'] = kwargs.get('base64', None)
         self._openssl_options['cipher_name'] = kwargs.get('cipher', 'aes-256-cbc')  # actual name, mode, and size
-        self._openssl_options['pbkdf2_iteration_count'] = kwargs.get('iter', OPENSSL_DEFAULT_ITERATION_COUNT)  # pbkdf2 iteration count - 10K is the default as of 2023 since OpenSSL 1.1.1
+        self._openssl_options['pbkdf2_iteration_count'] = kwargs.get('iter', OPENSSL_DEFAULT_ITERATION_COUNT)  # pbkdf2 iteration count - 10K is the default as of 2023 since OpenSSL 1.1.0
         # TODO user specificed salt and IV
         # TODO other cipher names
         # TODO clear kwargs of processed arguments, and raise an error if anything else left (i.e. unsupported arguments)

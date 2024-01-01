@@ -1,6 +1,6 @@
 # openssl_enc_compat
 
-Pure Python 2.7 and 3.x library that is compatible with OpenSSL 1.1.1+ encryption and decryption.
+Pure Python 2.7 and 3.x library that is compatible with OpenSSL 1.1.0+ encryption and decryption.
 https://github.com/clach04/openssl_enc_compat
 
 This is intended to be used a library, rather than as a command line tool.
