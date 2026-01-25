@@ -11,7 +11,7 @@ Also checkout:
 
   * https://github.com/The-Crocop/pyaes256 - lots of dependencies with a nice API but limited to utf-8 data
   * https://github.com/EbryxLabs/opencrypt - Python 3 only with a filename only API (and command line tools)
-  * https://github.com/Madhava-mng/openssltool - Python 3 only wapper around openssl command line tool
+  * https://github.com/Madhava-mng/openssltool - Python 3 only wrapper around openssl command line tool
 
 ## Sample
 
